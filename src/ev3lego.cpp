@@ -10,9 +10,8 @@
         red     - GND
         blue    - encoderin1
         yellow  - encoderin2
-        black/white - motor terminals         
+        black/white - motor terminals  - connect to a motor driver!        
              
-
 */
 #include "ev3lego.h"
 #include "Arduino.h"
@@ -24,12 +23,13 @@ unsigned long previousTime;
 double lastError;
 double cumError, rateError;
 
-ev3lego::ev3lego(int encoder1, int encoder2, int in1, int in2, int ena) {
+ev3lego::ev3lego(int encoder1, int encoder2, int in1, int in2, int ena, int wheel) {
   _encoder1 = encoder1;
   _encoder2 = encoder2;
   _in1 = in1;
   _in2 = in2;
   _ena = ena;
+  _wheel = wheel;
 }
 
 void countDegrees() {
@@ -105,6 +105,7 @@ double ev3lego::PIDcalc(double inp, int sp, int kp, int ki, int kd){
     // Limit the output for smoother operation
     if (out > 254) { out = 254; }
     if (out < -254) { out = -254; }
+    Serial.print("degrees = ");  Serial.println(degrees);
     Serial.print("out value = ");  Serial.println(out);
     return out;  // Return the PID output value
   }
@@ -115,21 +116,28 @@ double ev3lego::PIDcalc(double inp, int sp, int kp, int ki, int kd){
 
 void ev3lego::motgo(int speed){
   if(speed > 0){
-    digitalWrite(_in1, HIGH);
-    digitalWrite(_in2, LOW);
-  } else if (speed < 0){
     digitalWrite(_in1, LOW);
     digitalWrite(_in2, HIGH);
+  } else if (speed < 0){
+    digitalWrite(_in1, HIGH);
+    digitalWrite(_in2, LOW);
   } else {
     digitalWrite(_in1, HIGH);
     digitalWrite(_in2, HIGH);
   }
   analogWrite(_ena, abs(speed));
 }
-void ev3lego::gorounds(int angle){ //output: -254<x<+254
-  int motspeed = PIDcalc(angle, degrees, 0, 1, 0);//sp, pv. pv is the global variable degrees
+
+void ev3lego::godegrees(int angle){ //output: -254<x<+254
+  int motspeed = PIDcalc(angle, degrees, 1, 1, 0);//sp, pv. pv is the global variable degrees
   if(motspeed > 254){motspeed = 254;}
   if(motspeed < -254){motspeed = -254;}
   motgo(motspeed);
-  
+}
+
+double ev3lego::gomm(int distance){
+  int deg = (distance / (_wheel * PI)) * 360;
+  godegrees(deg);
+  int distcovered = (degrees * PI);
+  return distcovered; 
 }
