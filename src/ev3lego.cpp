@@ -2,10 +2,11 @@
 
           LEGO EV3 and NXT motor hacked
 
-      A Simple Interface for managing the encoder
+    A Simple Interface for managing the encoder
       utilizing arduino's interrupts 
+      working with L298N motor driver.
 
-       pinout:
+       lego cable pinout:
         green   - 5v
         red     - GND
         blue    - encoderin1
@@ -128,16 +129,34 @@ void ev3lego::motgo(int speed){
   analogWrite(_ena, abs(speed));
 }
 
-void ev3lego::godegrees(int angle){ //output: -254<x<+254
-  int motspeed = PIDcalc(angle, degrees, 1, 1, 0);//sp, pv. pv is the global variable degrees
-  if(motspeed > 254){motspeed = 254;}
-  if(motspeed < -254){motspeed = -254;}
-  motgo(motspeed);
+void ev3lego::godegrees(int angle, int times){ //output: -254<x<+254
+  for(int i = 0; i < times; i++){ 
+    int motspeed = PIDcalc(angle, degrees, 1, 1, 0);//sp, pv. pv is the global variable degrees
+    if(motspeed > 254){motspeed = 254;}
+    if(motspeed < -254){motspeed = -254;}
+    motgo(motspeed);
+  }
 }
 
-double ev3lego::gomm(int distance){
+void ev3lego::godegreesp(int angle, int times, int kp, int ki, int kd){
+  for(int i = 0; i < times; i++){ 
+      int motspeed = PIDcalc(angle, degrees, kp, ki, kd);//sp, pv. pv is the global variable degrees
+      if(motspeed > 254){motspeed = 254;}
+      if(motspeed < -254){motspeed = -254;}
+      motgo(motspeed);
+    }
+}
+
+double ev3lego::gomm(int distance, int times){
   int deg = (distance / (_wheel * PI)) * 360;
-  godegrees(deg);
+  godegrees(deg, times);
   int distcovered = (degrees * PI);
   return distcovered; 
+}
+
+double ev3lego::gommp(int distance, int times, int kp, int ki, int kd){
+  int deg = (distance / (_wheel * PI)) * 360;
+  godegreesp(deg, times, kp, ki, kd);
+  int distcovered = (degrees * PI);
+  return distcovered;
 }

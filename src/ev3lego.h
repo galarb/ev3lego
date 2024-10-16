@@ -7,11 +7,13 @@
    void begin();   //must be called from setup()
    void run();   //must be called from loop()
    long ang();
-   void godegrees(int angle);
+   void godegrees(int angle, int times);
+   void godegreesp(int angle, int times, int kp, int ki, int kd);
    double PIDcalc(double inp, int sp, int kp, int ki, int kd);
    void motgo(int speed);
-   double gomm(int distance);
- 
+   double gomm(int distance, int times);
+   double gommp(int distance, int times, int kp, int ki, int kd);
+
 
   private:
    int _encoder1, _encoder2, _in1, _in2, _ena, _wheel;
